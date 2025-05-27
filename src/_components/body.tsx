@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button"
-
+import { ArrowUp } from 'lucide-react';
 
 interface Video {
   id: number;
@@ -209,7 +209,7 @@ export default function Body() {
           }`}
         onClick={scrollToTop}
       >
-        ☝️
+        <ArrowUp className="size-6"/>
       </Button>
     </div>
   );
