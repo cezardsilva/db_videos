@@ -5,6 +5,8 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button"
+import '@bprogress/core/css';
+import { BProgress } from '@bprogress/core';
 
 
 export default function CreateVideo() {
@@ -36,6 +38,7 @@ export default function CreateVideo() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Enviando dados:", form);
+    BProgress.start();
 
     if (!form.title || !form.description || !form.link || !form.thumbnail || !form.duration) {
       alert("Todos os campos são obrigatórios!");
@@ -51,6 +54,7 @@ export default function CreateVideo() {
       await axios.post("https://node-api-fvge.onrender.com/videos", formattedData);
       alert("Vídeo criado com sucesso!");
       router.push("/");
+      BProgress.done();
     } catch (error) {
       console.error("Erro ao criar vídeo:", error);
       alert("Erro ao criar vídeo. Verifique os dados e tente novamente.");
