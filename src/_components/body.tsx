@@ -51,14 +51,28 @@ export default function Body() {
 
   const handleEdit = (video: Video) => setEditVideo(video);
 
+  const [durationString, setDurationString] = useState("00:00:00");
+
+  useEffect(() => {
+    if (editVideo) {
+      setDurationString(formatTime(editVideo.duration)); // Atualiza a string ao entrar na edição
+    }
+  }, [editVideo]);
+
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDurationString(e.target.value); // Permite edição livre
+  };
+
   const handleUpdate = async () => {
     if (!editVideo) return;
 
     try {
-      await axios.put(`https://node-api-fvge.onrender.com/videos/${editVideo.id}`, editVideo);
+      const updatedVideo = { ...editVideo, duration: parseTime(durationString) }; // Converte para segundos ao salvar
+
+      await axios.put(`https://node-api-fvge.onrender.com/videos/${editVideo.id}`, updatedVideo);
 
       setVideos((prevVideos) =>
-        (prevVideos ?? []).map((video) => (video.id === editVideo?.id ? { ...video, ...editVideo } : video))
+        (prevVideos ?? []).map((video) => (video.id === editVideo.id ? updatedVideo : video))
       );
 
       setEditVideo(null);
@@ -68,6 +82,8 @@ export default function Body() {
       alert("Erro ao atualizar vídeo. Tente novamente.");
     }
   };
+
+
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) =>
     setSearchVideo(event.target.value);
@@ -100,6 +116,23 @@ export default function Body() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+
+  const formatTime = (seconds: number): string => {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
+  const parseTime = (timeString: string): number => {
+    const parts = timeString.split(":");
+    if (parts.length !== 3) return 0; // Retorna 0 se o formato estiver incorreto
+    const [h, m, s] = parts.map(num => isNaN(Number(num)) ? 0 : Number(num)); // Evita NaN
+    return h * 3600 + m * 60 + s;
+  };
+
+
 
   return (
     <div className="bg-[#000] text-white">
@@ -163,10 +196,11 @@ export default function Body() {
                     <span className="text-black font-bold">Duração:</span>
                     <input
                       className="text-black bg-[#fff] mb-1 h-9 w-full border-2 rounded-sm pl-5 pr-5"
-                      type="number"
-                      value={editVideo.duration}
-                      onChange={(e) => setEditVideo({ ...editVideo, duration: parseFloat(e.target.value) || 0 })}
+                      type="text"
+                      value={durationString} // Usa o estado temporário
+                      onChange={handleDurationChange}
                     />
+
                   </div>
                   <Button className="cursor-pointer duration-500 hover:bg-sky-700 mt-5" onClick={handleUpdate}>✏️ Salvar Alterações</Button>
                 </div>
@@ -178,21 +212,23 @@ export default function Body() {
                   <p className="text-[#fff27e] max-w-full h-auto flex align-middle justify-center p-2.5">{video.description}</p>
 
                   <div className="flex justify-center pt-5 pb-5">
-                      <div style={{ position: "relative", display: "inline-block" }}>
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="max-w-full h-auto"
-                          style={{ maxWidth: "576px", maxHeight: "384px" }}
-                        />
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="max-w-full h-auto"
+                        style={{ maxWidth: "576px", maxHeight: "384px" }}
+                      />
 
-                      </div>
+                    </div>
                   </div>
-
 
                   <div className="flex align-middle justify-center pt-5 pb-5 gap-4">
-
+                    <span>Duração: </span><p className="text-[#fff27e]">
+                      {formatTime(video.duration)}
+                    </p>
                   </div>
+
                   <div className="flex align-middle justify-center pt-5 pb-5 gap-4">
                     <Button className="cursor-pointer duration-500 hover:bg-[#83733f]" onClick={() => handleDelete(video.id)}>🗑 Deletar</Button>
                     <Button className="cursor-pointer duration-500 hover:bg-[#ff7f7f]" onClick={() => window.open(video.link, "_blank")}>🎬 Assistir no YouTube</Button>
@@ -209,7 +245,7 @@ export default function Body() {
           }`}
         onClick={scrollToTop}
       >
-        <ArrowUp className="size-6"/>
+        <ArrowUp className="size-6" />
       </Button>
     </div>
   );
