@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button"
 import { ArrowUp } from 'lucide-react';
+import '@bprogress/core/css';
+import { BProgress } from '@bprogress/core';
 
 interface Video {
   id: number;
@@ -24,8 +26,10 @@ export default function Body() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
+        BProgress.start();
         const response = await axios.get("https://node-api-fvge.onrender.com/videos");
         setVideos(response.data);
+        BProgress.done();
       } catch (error) {
         console.error("Erro ao buscar vídeos:", error);
       }
